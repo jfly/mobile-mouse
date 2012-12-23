@@ -1,0 +1,91 @@
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
+
+<style type="text/css">
+body {
+    margin: 0px;
+    background-color: black;
+}
+#touchArea {
+    height: 100%;
+    width: 100%;
+}
+
+.touchShadow {
+    width: 150px;
+    height: 150px;
+    margin-left: -75px;
+    margin-top: -75px;
+    position: absolute;
+
+    background-image: -webkit-radial-gradient(center, 75px 75, orange, rgba(255, 255, 255, 0));
+}
+
+</style>
+
+<script type="text/javascript">
+
+window.addEventListener("load", function() {
+    var touchArea = document.getElementById('touchArea');
+
+    var touchShadows = {};
+
+    // TODO - Ideally, this would get rendered with requestAnimationFrame,
+    // which I don't even know is supported in mobile browsers...
+    function createOrUpdateTouches(touches) {
+        var idToTouch = {};
+        for(var i = 0; i < touches.length; i++) {
+            var touch = touches[i];
+            idToTouch[touch.identifier] = touch;
+            var xPercent = touch.pageX / document.width;
+            var yPercent = touch.pageY / document.height;
+
+            var touchShadow = touchShadows[touch.identifier];
+            if(!touchShadow) {
+                touchShadow = document.createElement("div");
+                touchShadow.classList.add("touchShadow");
+                touchArea.appendChild(touchShadow);
+                touchShadows[touch.identifier] = touchShadow;
+            }
+            touchShadow.style.top = touch.pageY;
+            touchShadow.style.left = touch.pageX;
+        }
+
+        for(var identifier in touchShadows) {
+            if(touchShadows.hasOwnProperty(identifier)) {
+                if(!idToTouch[identifier]) {
+                    var touchShadow = touchShadows[identifier];
+                    delete touchShadows[identifier];
+                    touchArea.removeChild(touchShadow);
+                }
+            }
+        }
+    }
+    touchArea.addEventListener('touchstart', function(event) {
+        createOrUpdateTouches(event.targetTouches);
+    });
+    touchArea.addEventListener('touchend', function(event) {
+        createOrUpdateTouches(event.targetTouches);
+    });
+    touchArea.addEventListener('touchmove', function(event) {
+        // Prevent safari from doing its boucy you're-at-the-end-of-the-screen thing
+        event.preventDefault();
+
+        createOrUpdateTouches(event.targetTouches);
+    }, false);
+
+    // hack for hiding ios scrollbar <<<
+    setTimeout(function() { window.scrollTo(0, 1); }, 1);
+
+}, false);
+
+
+</script>
+
+</head>
+<body>
+<div id="touchArea">
+</div>
+</body>
+</html>
